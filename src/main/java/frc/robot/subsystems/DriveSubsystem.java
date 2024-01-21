@@ -7,6 +7,8 @@ package frc.robot.subsystems;
 
 import static frc.robot.Constants.DriveConstants.*;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
@@ -18,6 +20,8 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 
 public class DriveSubsystem extends PomSubsystem {
 
@@ -54,6 +58,7 @@ public class DriveSubsystem extends PomSubsystem {
     // result in both sides moving forward. Depending on how your robot's
     // gearbox is constructed, you might have to invert the left side instead.
     masterRightMotor.setInverted(true);
+    slaveRightMotor.setInverted(true);
 
     //// Sets the distance per pulse for the encoders
     leftEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
@@ -230,6 +235,10 @@ public class DriveSubsystem extends PomSubsystem {
     mDrive.feed();
   }
 
+  public Command tankDriveVoltsCommand(Supplier<Double> left, Supplier<Double> right)
+  {
+    return new RunCommand(() -> tankDriveVolts(left.get(), right.get()), this);
+  }
   /** Resets the drive encoders to currently read a position of 0. */
   @Override
   public void resetEncoder() {

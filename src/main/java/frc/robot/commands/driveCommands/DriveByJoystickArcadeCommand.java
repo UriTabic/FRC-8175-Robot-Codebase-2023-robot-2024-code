@@ -83,7 +83,6 @@ public class DriveByJoystickArcadeCommand extends Command {
     SmartDashboard.putNumber("rot", rot);
     
     m_subsystem.arcadeDrive(fwd, rot);
-    
 
   }
 
