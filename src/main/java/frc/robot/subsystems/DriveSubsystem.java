@@ -18,6 +18,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -145,9 +146,9 @@ public class DriveSubsystem extends PomSubsystem {
 
     // field.setRobotPose(estimator.getEstimatedPosition());
 
-    
-    
-
+    // Shuffleboard.getTab("Drive").addDoubleArray("Pose", getPose().getTranslation());
+    double[] arr = new double[]{ getPose().getX() ,getPose().getY(),getPose().getRotation().getDegrees()};
+    SmartDashboard.putNumberArray("Drive",arr);
   }
 
   @Override

@@ -48,6 +48,7 @@ import frc.robot.commands.autonomous.PushInAndGetOut;
 import frc.robot.commands.autonomous.PutCubeUpAndOutCommand;
 import frc.robot.commands.autonomous.PutPieceAndOutCommand;
 import frc.robot.commands.autonomous.TrajectoryFactory;
+import frc.robot.commands.autonomous.putConeAndGetOut;
 import frc.robot.commands.driveCommands.BalanceAutomationCommand;
 import frc.robot.commands.driveCommands.DriveBackAndEject;
 import frc.robot.commands.driveCommands.DriveByJoystickArcadeCommand;
@@ -58,6 +59,7 @@ import frc.robot.commands.driveCommands.TurnByDegreeCommand;
 import frc.robot.commands.gripperCommands.GripperCommand;
 import frc.robot.commands.gripperCommands.GripperOnceCommand;
 import frc.robot.commands.positioningCommands.ConePositioningCommand;
+import frc.robot.subsystems.ColorSensorSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.GripperSubsystem;
 import frc.robot.subsystems.LiftSubsystem;
@@ -87,7 +89,7 @@ public class RobotContainer {
   public DriveByJoystickArcadeCommand mDriveByJoystickArcadeCommand = new DriveByJoystickArcadeCommand(mDriveSubsystem, () -> driveJoystick.getRawAxis(RIGHT_JOYSTICK_Y), () -> driveJoystick.getRawAxis(LEFT_TRIGGER) - driveJoystick.getRawAxis(RIGHT_TRIGGER), () -> driveJoystick.getRawButtonReleased(LB));
   public StopRobotDrive mStopRobotDrive = new StopRobotDrive(mDriveSubsystem);
 
-  
+  public ColorSensorSubsystem mColorSensorSubsystem = new ColorSensorSubsystem();
   
   public LiftSubsystem mLiftSubsystem = new LiftSubsystem();
   public LiftToPointCommand mLiftToPointCommand = new LiftToPointCommand(mLiftSubsystem, () -> operateJoystick.getPOV() == POV_DOWN, () -> operateJoystick.getPOV() == POV_LEFT, () -> operateJoystick.getPOV() == POV_UP, () -> operateJoystick.getPOV() == POV_RIGHT, () -> operateJoystick.getRawButtonReleased(LB), () -> operateJoystick.getRawButtonReleased(RB));

@@ -12,11 +12,14 @@
 
 package frc.robot;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
-
-
 import edu.wpi.first.hal.HAL;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -46,8 +49,9 @@ public class Robot extends TimedRobot {
     double autoTime = 15;
     double teleopTime = 215;
 
-
     Field2d field;
+
+    FileWriter logfile;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -59,6 +63,15 @@ public class Robot extends TimedRobot {
         // autonomous chooser on the dashboard.
         m_robotContainer = RobotContainer.getInstance();
         HAL.report(tResourceType.kResourceType_Framework, tInstances.kFramework_RobotBuilder);
+        DataLogManager.start();
+        try {
+            logfile = new FileWriter("log.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
 
         // init_tabs();
     }
@@ -77,6 +90,11 @@ public class Robot extends TimedRobot {
         // and running subsystem periodic() methods.  This must be called from the robot's periodic
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
+        try {
+            logfile.append(m_robotContainer.mColorSensorSubsystem.colorSensor.getColor().toHexString() + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         // updateFieldTab();
     }
 
