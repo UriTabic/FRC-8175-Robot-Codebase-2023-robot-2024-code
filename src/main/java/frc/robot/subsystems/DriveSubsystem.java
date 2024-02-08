@@ -15,6 +15,8 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.ctre.phoenix.sensors.WPI_PigeonIMU;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelPositions;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -47,6 +49,8 @@ public class DriveSubsystem extends PomSubsystem {
 
   // private final DifferentialDrivePoseEstimator estimator;
 
+  private final DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(mGyro.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance());
+
 
 
   /** Creates a new DriveSubsystem. */
@@ -62,8 +66,8 @@ public class DriveSubsystem extends PomSubsystem {
     slaveRightMotor.setInverted(true);
 
     //// Sets the distance per pulse for the encoders
-    leftEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
-    rightEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
+    // leftEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
+    // rightEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
 
     // estimator = new DifferentialDrivePoseEstimator(DRIVE_KINEMATICS, new Rotation2d(), 0, 0,new Pose2d(2.8,5,Rotation2d.fromDegrees(180)),
     //   new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.012, 0.012, 0.012), // Local measurement standard deviations. Left encoder, right encoder, gyro.
@@ -130,25 +134,25 @@ public class DriveSubsystem extends PomSubsystem {
     
 
 
-    // SmartDashboard.putNumber("left encoder", masterLeftMotor.getEncoder().getPosition() / 8.45 * 15.24 * Math.PI / 100);
-    // SmartDashboard.putNumber("right encoder",
-    //     masterRightMotor.getEncoder().getPosition() / 8.45 * 15.24 * Math.PI / 100);
     // SmartDashboard.putNumber("odometry x", getPose().getX());
     // SmartDashboard.putNumber("odometry y", getPose().getY());
     // SmartDashboard.putNumber("odometry deg", getPose().getRotation().getDegrees());
-
-
+    
+    
     // SmartDashboard.putNumber("right output", masterRightMotor.getAppliedOutput());
     // SmartDashboard.putNumber("left output", masterLeftMotor.getAppliedOutput());
     // SmartDashboard.putNumber("pitch", getPitchAngle());
     // SmartDashboard.putNumber("roll", mGyro.getRoll());
     // SmartDashboard.putNumber("yaw", mGyro.getYaw());
+    
+    odometry.update(mGyro.getRotation2d(), new DifferentialDriveWheelPositions(leftEncoder.getDistance(), rightEncoder.getDistance()));
+    field.setRobotPose(odometry.getPoseMeters());
+    SmartDashboard.putNumber("left encoder", leftEncoder.getDistance());
+    SmartDashboard.putNumber("right encoder", leftEncoder.getDistance());
+    
+    
+    
 
-    // field.setRobotPose(estimator.getEstimatedPosition());
-
-    // Shuffleboard.getTab("Drive").addDoubleArray("Pose", getPose().getTranslation());
-    double[] arr = new double[]{ getPose().getX() ,getPose().getY(),getPose().getRotation().getDegrees()};
-    SmartDashboard.putNumberArray("Drive",arr);
   }
 
   @Override
@@ -180,8 +184,7 @@ public class DriveSubsystem extends PomSubsystem {
    * @return The pose.
    */
   public Pose2d getPose() {
-    // return estimator.getEstimatedPosition();
-    return new Pose2d();
+    return odometry.getPoseMeters();
   }
 
   /**sets all of the motors to a paramater value
