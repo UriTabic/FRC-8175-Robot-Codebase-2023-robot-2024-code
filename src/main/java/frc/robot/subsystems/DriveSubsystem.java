@@ -6,6 +6,13 @@
 package frc.robot.subsystems;
 
 import static frc.robot.Constants.DriveConstants.*;
+import static frc.robot.Constants.DriveConstants.LEFT_ENCODER_IDS;
+import static frc.robot.Constants.DriveConstants.LEFT_MOTOR1;
+import static frc.robot.Constants.DriveConstants.LEFT_MOTOR2;
+import static frc.robot.Constants.DriveConstants.RATE;
+import static frc.robot.Constants.DriveConstants.RIGHT_ENCODER_IDS;
+import static frc.robot.Constants.DriveConstants.RIGHT_MOTOR1;
+import static frc.robot.Constants.DriveConstants.RIGHT_MOTOR2;
 
 import java.util.function.Supplier;
 
@@ -14,17 +21,26 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.ctre.phoenix.sensors.WPI_PigeonIMU;
 
+import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.MutableMeasure;
+import edu.wpi.first.units.Velocity;
+import edu.wpi.first.units.Voltage;
+import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.MutableMeasure.mutable;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelPositions;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class DriveSubsystem extends PomSubsystem {
 
@@ -51,7 +67,49 @@ public class DriveSubsystem extends PomSubsystem {
 
   private final DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(mGyro.getRotation2d(), leftEncoder.getDistance(), rightEncoder.getDistance());
 
+  private final MutableMeasure<Voltage> m_appliedVoltage = mutable(Volts.of(0));
+  // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
+  private final MutableMeasure<Distance> m_distance = mutable(Meters.of(0));
+  // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
+  private final MutableMeasure<Velocity<Distance>> m_velocity = mutable(MetersPerSecond.of(0));
 
+
+
+private final SysIdRoutine m_sysIdRoutine =
+      new SysIdRoutine(
+          // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+          new SysIdRoutine.Config(),
+          new SysIdRoutine.Mechanism(
+              // Tell SysId how to plumb the driving voltage to the motors.
+              (Measure<Voltage> volts) -> {
+                masterLeftMotor.setVoltage(volts.in(Volts));
+                masterRightMotor.setVoltage(volts.in(Volts));
+              },
+              // Tell SysId how to record a frame of data for each motor on the mechanism being
+              // characterized.
+              log -> {
+                // Record a frame for the left motors.  Since these share an encoder, we consider
+                // the entire group to be one motor.
+                log.motor("drive-left")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            masterLeftMotor.get() * RobotController.getBatteryVoltage(), Volts))
+                    .linearPosition(m_distance.mut_replace(leftEncoder.getDistance(), Meters))
+                    .linearVelocity(
+                        m_velocity.mut_replace(leftEncoder.getRate(), MetersPerSecond));
+                // Record a frame for the right motors.  Since these share an encoder, we consider
+                // the entire group to be one motor.
+                log.motor("drive-right")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            masterRightMotor.get() * RobotController.getBatteryVoltage(), Volts))
+                    .linearPosition(m_distance.mut_replace(rightEncoder.getDistance(), Meters))
+                    .linearVelocity(
+                        m_velocity.mut_replace(rightEncoder.getRate(), MetersPerSecond));
+              },
+              // Tell SysId to make generated commands require this subsystem, suffix test state in
+              // WPILog with this subsystem's name ("drive")
+              this));
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
@@ -66,8 +124,9 @@ public class DriveSubsystem extends PomSubsystem {
     slaveRightMotor.setInverted(true);
 
     //// Sets the distance per pulse for the encoders
-    // leftEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
-    // rightEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
+    leftEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
+    rightEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
+    rightEncoder.setReverseDirection(true);
 
     // estimator = new DifferentialDrivePoseEstimator(DRIVE_KINEMATICS, new Rotation2d(), 0, 0,new Pose2d(2.8,5,Rotation2d.fromDegrees(180)),
     //   new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.012, 0.012, 0.012), // Local measurement standard deviations. Left encoder, right encoder, gyro.
@@ -90,6 +149,7 @@ public class DriveSubsystem extends PomSubsystem {
     slaveRightMotor.setNeutralMode(NeutralMode.Coast);
     
     mGyro.reset();
+    resetEncoder();
 
     
   }
@@ -149,10 +209,24 @@ public class DriveSubsystem extends PomSubsystem {
     field.setRobotPose(odometry.getPoseMeters());
     SmartDashboard.putNumber("left encoder", leftEncoder.getDistance());
     SmartDashboard.putNumber("right encoder", rightEncoder.getDistance());
-    
-    
-    
+  }
 
+    /**
+   * Returns a command that will execute a quasistatic test in the given direction.
+   *
+   * @param direction The direction (forward or reverse) to run the test in
+   */
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.quasistatic(direction);
+  }
+
+  /**
+   * Returns a command that will execute a dynamic test in the given direction.
+   *
+   * @param direction The direction (forward or reverse) to run the test in
+   */
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.dynamic(direction);
   }
 
   @Override

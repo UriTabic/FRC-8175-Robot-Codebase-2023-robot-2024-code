@@ -11,6 +11,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 
 /**
@@ -45,9 +46,9 @@ public class Constants {
         public static final int GYRO_NUM = 7;
 
         public static final double TO_RADIANS = 1 / 180 * Math.PI;
-        public static final double ROTATIONS_TO_METERS = 1 / 8.45 * 15.24 * Math.PI / 100;
 
-        public static final double ENCODER_DISTANCE_PER_PULSE = 0.0002337787;
+        public static final double INCHES_TO_METERS = 0.0254;
+        public static final double ENCODER_DISTANCE_PER_PULSE = (1 / 2048.0) * ((6 * INCHES_TO_METERS) * Math.PI);
         public static final int RIGHT_ENCODER_REVERSED = 4;
         public static final double KS_VOLTS = 0.5;
         public static final double KV_VOLT_SECOND_PER_METER  = 2.8419;
