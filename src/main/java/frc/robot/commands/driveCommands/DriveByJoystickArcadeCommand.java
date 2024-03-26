@@ -79,6 +79,8 @@ public class DriveByJoystickArcadeCommand extends Command {
     if(slow){
       fwd /= 1.3;
     }
+    fwd /= 2;
+    rot /=2;
     SmartDashboard.putNumber("fwd", fwd);
     SmartDashboard.putNumber("rot", rot);
     

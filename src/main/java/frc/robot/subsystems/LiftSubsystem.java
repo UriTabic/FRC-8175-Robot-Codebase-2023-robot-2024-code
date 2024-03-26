@@ -51,6 +51,7 @@ public class LiftSubsystem extends PomSubsystem {
     groundMicroSwitch = new DigitalInput(GROUND_MICRO_SWITCH_ID);
 
     SmartDashboard.putNumber("arm encoder", liftMotor.getEncoder().getPosition());
+    SmartDashboard.putNumber("arm motor", liftMotor.get());
 
     
 
@@ -63,6 +64,7 @@ public class LiftSubsystem extends PomSubsystem {
     SmartDashboard.putNumber("arm encoder", liftMotor.getEncoder().getPosition());
     SmartDashboard.putBoolean("arm fold limit switch", isFoldSwitchPressed());
     SmartDashboard.putBoolean("arm ground limit switch", isGroundSwitchPressed());
+    SmartDashboard.putNumber("arm motor", liftMotor.get());
     if(isFoldSwitchPressed())
     {
       resetEncoder();

@@ -66,7 +66,7 @@ import frc.robot.subsystems.LiftSubsystem;
   @Override
   public void execute() {
 
- 
+  
     if(groundSup.getAsBoolean())
     {
       targetPosition = GROUND;
@@ -96,12 +96,12 @@ import frc.robot.subsystems.LiftSubsystem;
     {
         targetPosition -= 1;
     }
-    if((m_subsystem.getEncoderPosition() > GROUND - 10 && targetPosition == GROUND) || (m_subsystem.getEncoderPosition() < FOLD + 8 && targetPosition == FOLD))
+    if((m_subsystem.getEncoderPosition() >= GROUND - 1 && targetPosition == GROUND) || (m_subsystem.getEncoderPosition() <= FOLD + 1 && targetPosition == FOLD)){
+      m_subsystem.setMotor(0);
+    }
+    else if((m_subsystem.getEncoderPosition() > GROUND - 10 && targetPosition == GROUND) || (m_subsystem.getEncoderPosition() < FOLD + 8 && targetPosition == FOLD))
     {
       m_subsystem.setMotor(0.05 * (targetPosition == GROUND ? 1 : -1));
-    }
-    else if((m_subsystem.getEncoderPosition() >= GROUND && targetPosition == GROUND) || (m_subsystem.getEncoderPosition() <= FOLD && targetPosition == FOLD)){
-      m_subsystem.setMotor(0);
     }
     else {
       pid.setSetpoint(targetPosition);

@@ -130,10 +130,10 @@ public class Constants {
     }
     public static final class LiftConstants {
         public static final int MOTOR_ID = 5;
-        public static final int FOLD_MICRO_SWITCH_ID = 3;
-        public static final int GROUND_MICRO_SWITCH_ID = 4;
+        public static final int FOLD_MICRO_SWITCH_ID = 4;
+        public static final int GROUND_MICRO_SWITCH_ID = 3;
         
-        public static final double KP = 0.015;
+        public static final double KP = 0.01;
         public static final double PROFILE_KP = 0.03;//CHECK!!
         public static final double KI = 0.0;
         public static final double KD = 0;

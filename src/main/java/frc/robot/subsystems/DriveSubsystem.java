@@ -148,7 +148,7 @@ public class DriveSubsystem extends PomSubsystem {
     odometry.update(mGyro.getRotation2d(), new DifferentialDriveWheelPositions(leftEncoder.getDistance(), rightEncoder.getDistance()));
     field.setRobotPose(odometry.getPoseMeters());
     SmartDashboard.putNumber("left encoder", leftEncoder.getDistance());
-    SmartDashboard.putNumber("right encoder", leftEncoder.getDistance());
+    SmartDashboard.putNumber("right encoder", rightEncoder.getDistance());
     
     
     
