@@ -226,6 +226,8 @@ public class RobotContainer {
      Trigger mBallanceTrigger = driverCommandJoystick.button(Y);
      mBallanceTrigger.whileTrue(mBalanceAutomationCommand);
 
+     driverCommandJoystick.button(X).onTrue(mDriveSubsystem.sysidCommand(driverCommandJoystick.button(B)));
+
     //  Trigger driveRamseteTrigger = driverCommandJoystick.axisLessThan(1, -0.3);
     //  driveRamseteTrigger.onTrue(mDriveBack1);
 

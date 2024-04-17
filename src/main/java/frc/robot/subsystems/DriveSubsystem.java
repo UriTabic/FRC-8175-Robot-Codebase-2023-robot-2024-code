@@ -14,6 +14,7 @@ import static frc.robot.Constants.DriveConstants.RIGHT_ENCODER_IDS;
 import static frc.robot.Constants.DriveConstants.RIGHT_MOTOR1;
 import static frc.robot.Constants.DriveConstants.RIGHT_MOTOR2;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -39,7 +40,9 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class DriveSubsystem extends PomSubsystem {
@@ -126,7 +129,8 @@ private final SysIdRoutine m_sysIdRoutine =
     //// Sets the distance per pulse for the encoders
     leftEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
     rightEncoder.setDistancePerPulse(ENCODER_DISTANCE_PER_PULSE);
-    rightEncoder.setReverseDirection(true);
+    // rightEncoder.setReverseDirection(true);
+    // leftEncoder.setReverseDirection(false);
 
     // estimator = new DifferentialDrivePoseEstimator(DRIVE_KINEMATICS, new Rotation2d(), 0, 0,new Pose2d(2.8,5,Rotation2d.fromDegrees(180)),
     //   new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.012, 0.012, 0.012), // Local measurement standard deviations. Left encoder, right encoder, gyro.
@@ -227,6 +231,23 @@ private final SysIdRoutine m_sysIdRoutine =
    */
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutine.dynamic(direction);
+  }
+
+  public Command sysidCommand(BooleanSupplier stop)
+  {
+    return Commands.sequence(
+      sysIdQuasistatic(SysIdRoutine.Direction.kForward).until(stop),
+      runOnce(this::stopMotor),
+      new WaitCommand(1.5),
+      sysIdQuasistatic(SysIdRoutine.Direction.kReverse).until(stop),
+      runOnce(this::stopMotor),
+      new WaitCommand(1.5),
+      sysIdDynamic(SysIdRoutine.Direction.kForward).until(stop),
+      runOnce(this::stopMotor),
+      new WaitCommand(1.5),
+      sysIdDynamic(SysIdRoutine.Direction.kReverse).until(stop),
+      runOnce(this::stopMotor)
+    );
   }
 
   @Override
